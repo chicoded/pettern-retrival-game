@@ -645,6 +645,312 @@
     return g;
   }
 
+  function buildIceCream() {
+    const g = makeEmptyGrid();
+    drawTriangleFilled(g, 12, 21, 7, 12, 17, 12, "a");
+    drawLine(g, 8, 13, 16, 13, "w");
+    drawDisk(g, 12, 10, 5, "m");
+    drawDisk(g, 9, 9, 3, "m");
+    drawDisk(g, 15, 9, 3, "m");
+    drawDisk(g, 11, 9, 2, "w");
+    return g;
+  }
+
+  function buildCloud() {
+    const g = makeEmptyGrid();
+    drawDisk(g, 9, 12, 4, "w");
+    drawDisk(g, 13, 11, 5, "w");
+    drawDisk(g, 17, 12, 4, "w");
+    drawRect(g, 7, 12, 14, 5, "w");
+    drawRect(g, 9, 14, 10, 3, "c");
+    return g;
+  }
+
+  function buildLightning() {
+    const g = makeEmptyGrid();
+    drawTriangleFilled(g, 9, 4, 16, 4, 10, 14, "y");
+    drawTriangleFilled(g, 10, 14, 17, 14, 8, 22, "y");
+    drawLine(g, 16, 4, 10, 14, "y");
+    drawLine(g, 17, 14, 8, 22, "y");
+    return g;
+  }
+
+  function buildRocket() {
+    const g = makeEmptyGrid();
+    drawTriangleFilled(g, 12, 4, 9, 9, 15, 9, "w");
+    drawRect(g, 9, 9, 6, 9, "w");
+    drawTriangleFilled(g, 9, 12, 6, 16, 9, 16, "m");
+    drawTriangleFilled(g, 15, 12, 15, 16, 18, 16, "m");
+    drawDisk(g, 12, 12, 2, "c");
+    drawTriangleFilled(g, 12, 22, 10, 18, 14, 18, "a");
+    drawTriangleFilled(g, 12, 23, 11, 20, 13, 20, "y");
+    return g;
+  }
+
+  function buildPizza() {
+    const g = makeEmptyGrid();
+    drawTriangleFilled(g, 12, 21, 6, 7, 18, 7, "y");
+    drawLine(g, 6, 7, 18, 7, "a");
+    drawDisk(g, 10, 11, 1, "m");
+    drawDisk(g, 14, 12, 1, "m");
+    drawDisk(g, 12, 15, 1, "m");
+    drawDisk(g, 11, 17, 1, "g");
+    return g;
+  }
+
+  function buildDiamond() {
+    const g = makeEmptyGrid();
+    drawTriangleFilled(g, 12, 4, 6, 12, 18, 12, "c");
+    drawTriangleFilled(g, 12, 20, 6, 12, 18, 12, "c");
+    drawLine(g, 6, 12, 18, 12, "w");
+    drawLine(g, 12, 4, 12, 20, "w");
+    return g;
+  }
+
+  function buildCrown() {
+    const g = makeEmptyGrid();
+    drawRect(g, 6, 14, 12, 5, "y");
+    drawTriangleFilled(g, 6, 14, 8, 8, 10, 14, "y");
+    drawTriangleFilled(g, 10, 14, 12, 6, 14, 14, "y");
+    drawTriangleFilled(g, 14, 14, 16, 8, 18, 14, "y");
+    drawDisk(g, 8, 8, 1, "m");
+    drawDisk(g, 12, 6, 1, "m");
+    drawDisk(g, 16, 8, 1, "m");
+    return g;
+  }
+
+  function buildGhost() {
+    const g = makeEmptyGrid();
+    drawDisk(g, 12, 11, 6, "w");
+    drawRect(g, 6, 11, 12, 9, "w");
+    drawDisk(g, 10, 12, 1, "c");
+    drawDisk(g, 14, 12, 1, "c");
+    drawRect(g, 10, 16, 4, 1, "m");
+    setPx(g, 7, 20, null);
+    setPx(g, 9, 20, null);
+    setPx(g, 11, 20, null);
+    setPx(g, 13, 20, null);
+    setPx(g, 15, 20, null);
+    setPx(g, 17, 20, null);
+    return g;
+  }
+
+  function buildSkull() {
+    const g = makeEmptyGrid();
+    drawDisk(g, 12, 11, 6, "w");
+    drawRect(g, 7, 12, 10, 7, "w");
+    drawDisk(g, 10, 12, 2, "c");
+    drawDisk(g, 14, 12, 2, "c");
+    drawRect(g, 11, 14, 2, 2, "c");
+    drawRect(g, 9, 18, 2, 2, "w");
+    drawRect(g, 13, 18, 2, 2, "w");
+    return g;
+  }
+
+  function buildRobot() {
+    const g = makeEmptyGrid();
+    drawRect(g, 7, 8, 10, 10, "c");
+    drawRect(g, 9, 10, 2, 2, "w");
+    drawRect(g, 13, 10, 2, 2, "w");
+    drawRect(g, 10, 15, 4, 1, "m");
+    drawRect(g, 11, 5, 2, 3, "a");
+    drawDisk(g, 12, 5, 1, "a");
+    return g;
+  }
+
+  function buildCactus() {
+    const g = makeEmptyGrid();
+    drawRect(g, 11, 7, 2, 14, "g");
+    drawRect(g, 8, 10, 3, 3, "g");
+    drawRect(g, 8, 10, 2, 7, "g");
+    drawRect(g, 13, 11, 3, 3, "g");
+    drawRect(g, 14, 11, 2, 7, "g");
+    drawRect(g, 10, 20, 4, 2, "a");
+    return g;
+  }
+
+  function buildMountain() {
+    const g = makeEmptyGrid();
+    drawTriangleFilled(g, 5, 20, 12, 6, 19, 20, "c");
+    drawTriangleFilled(g, 8, 20, 12, 10, 16, 20, "w");
+    drawTriangleFilled(g, 3, 20, 8, 12, 13, 20, "c");
+    drawTriangleFilled(g, 6, 20, 8, 15, 10, 20, "w");
+    return g;
+  }
+
+  function buildPlanet() {
+    const g = makeEmptyGrid();
+    drawDisk(g, 12, 12, 5, "m");
+    drawRing(g, 12, 12, 8, 7, "c");
+    drawLine(g, 5, 12, 19, 12, "c");
+    drawLine(g, 6, 11, 18, 13, "c");
+    drawDisk(g, 10, 10, 1, "w");
+    return g;
+  }
+
+  function buildSnowflake() {
+    const g = makeEmptyGrid();
+    drawLine(g, 12, 6, 12, 18, "c");
+    drawLine(g, 6, 12, 18, 12, "c");
+    drawLine(g, 8, 8, 16, 16, "c");
+    drawLine(g, 16, 8, 8, 16, "c");
+    drawDisk(g, 12, 12, 1, "w");
+    return g;
+  }
+
+  function buildBee() {
+    const g = makeEmptyGrid();
+    drawDisk(g, 12, 13, 5, "y");
+    drawRect(g, 8, 11, 8, 2, "a");
+    drawRect(g, 8, 14, 8, 2, "a");
+    drawDisk(g, 10, 9, 3, "c");
+    drawDisk(g, 14, 9, 3, "c");
+    setPx(g, 9, 12, "c");
+    setPx(g, 15, 12, "c");
+    return g;
+  }
+
+  function buildCamera() {
+    const g = makeEmptyGrid();
+    drawRect(g, 6, 10, 12, 8, "w");
+    drawRect(g, 8, 8, 4, 2, "w");
+    drawDisk(g, 12, 14, 3, "c");
+    drawDisk(g, 12, 14, 1, "w");
+    drawRect(g, 16, 11, 1, 1, "m");
+    return g;
+  }
+
+  function buildPhone() {
+    const g = makeEmptyGrid();
+    drawRect(g, 9, 6, 6, 14, "w");
+    drawRect(g, 10, 8, 4, 9, "c");
+    drawDisk(g, 12, 19, 1, "m");
+    return g;
+  }
+
+  function buildLeaf() {
+    const g = makeEmptyGrid();
+    drawDisk(g, 12, 12, 6, "g");
+    drawDisk(g, 15, 9, 3, "g");
+    drawDisk(g, 9, 15, 3, "g");
+    drawLine(g, 9, 16, 16, 9, "w");
+    drawLine(g, 12, 12, 16, 12, "w");
+    return g;
+  }
+
+  function buildQuestionMarkSymbol() {
+    const g = makeEmptyGrid();
+    drawDisk(g, 12, 9, 4, "m");
+    floodErase(g, "m", 12, 9);
+    drawRect(g, 9, 7, 6, 2, "m");
+    drawRect(g, 14, 9, 2, 3, "m");
+    drawRect(g, 12, 12, 2, 3, "m");
+    drawDisk(g, 12, 18, 1, "m");
+    return g;
+  }
+
+  function buildExclamationMarkSymbol() {
+    const g = makeEmptyGrid();
+    drawRect(g, 11, 6, 2, 10, "m");
+    drawDisk(g, 12, 18, 1, "m");
+    return g;
+  }
+
+  function buildAtSignSymbol() {
+    const g = makeEmptyGrid();
+    drawRing(g, 12, 12, 8, 6, "c");
+    drawDisk(g, 13, 12, 3, "c");
+    drawRect(g, 14, 10, 3, 6, "c");
+    drawLine(g, 16, 12, 16, 17, "c");
+    return g;
+  }
+
+  function buildHashSignSymbol() {
+    const g = makeEmptyGrid();
+    drawRect(g, 9, 7, 2, 12, "y");
+    drawRect(g, 13, 7, 2, 12, "y");
+    drawRect(g, 7, 10, 12, 2, "y");
+    drawRect(g, 7, 14, 12, 2, "y");
+    return g;
+  }
+
+  function buildDollarSignSymbol() {
+    const g = makeEmptyGrid();
+    drawRect(g, 11, 6, 2, 14, "g");
+    drawDisk(g, 12, 10, 4, "g");
+    drawDisk(g, 12, 16, 4, "g");
+    floodErase(g, "g", 12, 10);
+    floodErase(g, "g", 12, 16);
+    drawRect(g, 9, 8, 6, 2, "g");
+    drawRect(g, 9, 14, 6, 2, "g");
+    drawRect(g, 9, 12, 2, 2, "g");
+    drawRect(g, 13, 10, 2, 2, "g");
+    return g;
+  }
+
+  function buildPercentSignSymbol() {
+    const g = makeEmptyGrid();
+    drawDisk(g, 8, 9, 2, "a");
+    drawDisk(g, 16, 15, 2, "a");
+    drawLine(g, 7, 17, 17, 7, "a");
+    return g;
+  }
+
+  function buildAmpersandSymbol() {
+    const g = makeEmptyGrid();
+    drawDisk(g, 11, 9, 3, "m");
+    drawDisk(g, 10, 15, 4, "m");
+    drawDisk(g, 15, 15, 3, "m");
+    drawRect(g, 9, 12, 8, 2, "m");
+    drawRect(g, 13, 9, 3, 2, "m");
+    floodErase(g, "m", 11, 9);
+    return g;
+  }
+
+  function buildPlusSignSymbol() {
+    const g = makeEmptyGrid();
+    drawRect(g, 11, 7, 2, 12, "c");
+    drawRect(g, 6, 12, 12, 2, "c");
+    return g;
+  }
+
+  function buildEqualsSignSymbol() {
+    const g = makeEmptyGrid();
+    drawRect(g, 6, 11, 12, 2, "c");
+    drawRect(g, 6, 15, 12, 2, "c");
+    return g;
+  }
+
+  function buildSlashSymbol() {
+    const g = makeEmptyGrid();
+    drawLine(g, 8, 18, 16, 6, "w");
+    drawLine(g, 9, 18, 17, 6, "w");
+    return g;
+  }
+
+  function buildAsteriskSymbol() {
+    const g = makeEmptyGrid();
+    drawLine(g, 12, 7, 12, 17, "y");
+    drawLine(g, 8, 10, 16, 14, "y");
+    drawLine(g, 16, 10, 8, 14, "y");
+    drawDisk(g, 12, 12, 1, "w");
+    return g;
+  }
+
+  function buildLessThanSymbol() {
+    const g = makeEmptyGrid();
+    drawLine(g, 16, 7, 8, 12, "w");
+    drawLine(g, 8, 12, 16, 17, "w");
+    return g;
+  }
+
+  function buildGreaterThanSymbol() {
+    const g = makeEmptyGrid();
+    drawLine(g, 8, 7, 16, 12, "w");
+    drawLine(g, 16, 12, 8, 17, "w");
+    return g;
+  }
+
   const SPECS = [
     makeSpec("APPLE", buildApple),
     makeSpec("BANANA", buildBanana),
@@ -668,6 +974,37 @@
     makeSpec("SNAKE", buildSnake),
     makeSpec("BUTTERFLY", buildButterfly),
     makeSpec("MUSHROOM", buildMushroom),
+    makeSpec("ICE CREAM", buildIceCream),
+    makeSpec("CLOUD", buildCloud),
+    makeSpec("LIGHTNING", buildLightning),
+    makeSpec("ROCKET", buildRocket),
+    makeSpec("PIZZA", buildPizza),
+    makeSpec("DIAMOND", buildDiamond),
+    makeSpec("CROWN", buildCrown),
+    makeSpec("GHOST", buildGhost),
+    makeSpec("SKULL", buildSkull),
+    makeSpec("ROBOT", buildRobot),
+    makeSpec("CACTUS", buildCactus),
+    makeSpec("MOUNTAIN", buildMountain),
+    makeSpec("PLANET", buildPlanet),
+    makeSpec("SNOWFLAKE", buildSnowflake),
+    makeSpec("BEE", buildBee),
+    makeSpec("CAMERA", buildCamera),
+    makeSpec("PHONE", buildPhone),
+    makeSpec("LEAF", buildLeaf),
+    makeSpec("QUESTION MARK", buildQuestionMarkSymbol),
+    makeSpec("EXCLAMATION MARK", buildExclamationMarkSymbol),
+    makeSpec("AT SIGN", buildAtSignSymbol),
+    makeSpec("HASH SIGN", buildHashSignSymbol),
+    makeSpec("DOLLAR SIGN", buildDollarSignSymbol),
+    makeSpec("PERCENT SIGN", buildPercentSignSymbol),
+    makeSpec("AMPERSAND", buildAmpersandSymbol),
+    makeSpec("PLUS SIGN", buildPlusSignSymbol),
+    makeSpec("EQUALS SIGN", buildEqualsSignSymbol),
+    makeSpec("SLASH", buildSlashSymbol),
+    makeSpec("ASTERISK", buildAsteriskSymbol),
+    makeSpec("LESS THAN", buildLessThanSymbol),
+    makeSpec("GREATER THAN", buildGreaterThanSymbol),
   ];
 
   const audio = (() => {
