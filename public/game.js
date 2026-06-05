@@ -87,6 +87,7 @@
   const shareText = $("#shareText");
   const copyBtn = $("#copyBtn");
   const tweetBtn = $("#tweetBtn");
+  const copyImageBtn = $("#copyImageBtn");
   const downloadBtn = $("#downloadBtn");
   const againBtn = $("#againBtn");
   const copyHint = $("#copyHint");
@@ -1134,6 +1135,19 @@
       return true;
     }
 
+    async function copyShareImageToClipboard() {
+      const blob = await getShareImageBlob();
+      if (!blob) return false;
+      if (!navigator.clipboard || typeof window.ClipboardItem !== "function") return false;
+      try {
+        const item = new ClipboardItem({ "image/png": blob });
+        await navigator.clipboard.write([item]);
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
     function endGame() {
       audio.stopHum();
       setScreen("end");
@@ -1358,6 +1372,14 @@
           copyHint.textContent = "IMAGE DOWNLOADED · ATTACH TO POST";
           const intent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(payload)}`;
           window.open(intent, "_blank", "noopener,noreferrer");
+        });
+      }
+
+      if (copyImageBtn) {
+        copyImageBtn.addEventListener("click", async () => {
+          const ok = await copyShareImageToClipboard();
+          if (ok) copyHint.textContent = "IMAGE COPIED · PASTE INTO POST";
+          else copyHint.textContent = "COPY FAILED · USE DOWNLOAD";
         });
       }
 
