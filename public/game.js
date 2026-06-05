@@ -1020,6 +1020,43 @@
       const h = shareCanvas.height;
       const ctx2 = shareCtx;
 
+      function drawTrophyPixelIcon(x, y, scale) {
+        const icon = [
+          "................",
+          ".....wwwwww.....",
+          "....wyyyyyyw....",
+          "...wyyyaaayyyw..",
+          "..wyyyaaaayyw...",
+          "..wyyyaaaayyw...",
+          "..wyyyaaaayyw...",
+          "...wyyyyyyw....",
+          "....wyyyyw.....",
+          ".....waaw......",
+          ".....waaw......",
+          "....waaaaw.....",
+          "....waaaaw.....",
+          "...wwaaaaww.....",
+          "...wwaaaaww.....",
+          "....wwwwww.....",
+          "................",
+        ];
+
+        ctx2.save();
+        ctx2.imageSmoothingEnabled = false;
+        ctx2.globalAlpha = 0.92;
+        for (let iy = 0; iy < icon.length; iy++) {
+          const row = icon[iy];
+          for (let ix = 0; ix < row.length; ix++) {
+            const c = row[ix];
+            if (c === ".") continue;
+            const col = PALETTE[c] || PALETTE.a;
+            ctx2.fillStyle = col;
+            ctx2.fillRect(x + ix * scale, y + iy * scale, scale, scale);
+          }
+        }
+        ctx2.restore();
+      }
+
       ctx2.save();
       ctx2.clearRect(0, 0, w, h);
       ctx2.fillStyle = "#050819";
@@ -1091,6 +1128,8 @@
         ctx2.imageSmoothingEnabled = avatarMode === "upload";
         ctx2.drawImage(avatarCanvas, ax, ay, aw, ah);
         ctx2.imageSmoothingEnabled = true;
+
+        drawTrophyPixelIcon(ax + 62, ay + ah + 44, 6);
       }
 
       const squares = results.join("");
