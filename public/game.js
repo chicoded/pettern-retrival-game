@@ -40,7 +40,7 @@
     a: "#ffaa00",
   };
 
-  const CANONICAL_PUBLIC_URL = "https://chicoded.github.io/pettern-retrival-game/";
+  const CANONICAL_PUBLIC_URL = "https://pettern-retrival-game.vercel.app/";
 
   const EMOJI_BY_COLOR = {
     c: "🟦",
