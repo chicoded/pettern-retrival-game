@@ -17,6 +17,10 @@
           <div class="brand__subtitle">GUESS THE GLYPH · STATUS: ONLINE</div>
         </div>
         <div class="hud">
+          <div class="hud__user" id="hudUser" aria-hidden="true">
+            <canvas id="hudAvatar" width="32" height="32"></canvas>
+            <div class="hud__name" id="hudName">--</div>
+          </div>
           <div class="hud__item">
             <div class="hud__label">ROUND</div>
             <div class="hud__value" id="roundText">-- / --</div>
@@ -45,6 +49,7 @@
                 placeholder="enter name"
                 aria-label="registration name"
               />
+              <button class="btn reg__register" id="registerBtn" type="button">REGISTER</button>
               <div class="reg__label reg__label--sub">AVATAR</div>
               <input class="reg__file" id="avatarUpload" type="file" accept="image/*" aria-label="upload avatar" />
               <button class="btn btn--ghost reg__random" id="avatarRandomBtn" type="button">USE RANDOM</button>
@@ -53,14 +58,13 @@
               <canvas id="avatarCanvas" width="96" height="96" aria-label="pixel face"></canvas>
             </div>
           </div>
-          <div class="panel__row">
+          <div class="panel__row hidden" id="difficultyRow">
             <button class="btn" data-difficulty="easy">EASY</button>
             <button class="btn" data-difficulty="medium">MEDIUM</button>
             <button class="btn" data-difficulty="hard">HARD</button>
           </div>
-          <div class="panel__hint">
-            enter a name. watch the scatter converge. choose the label.
-          </div>
+          <div class="panel__hint" id="registerHint">enter a name. register to proceed.</div>
+          <div class="panel__hint hidden" id="difficultyHint">select a mode. watch the scatter converge. choose the label.</div>
         </div>
       </section>
 

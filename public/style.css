@@ -65,6 +65,36 @@ body {
   gap: 14px;
 }
 
+.hud__user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  min-width: 160px;
+}
+
+#hudAvatar {
+  width: 32px;
+  height: 32px;
+  display: block;
+  image-rendering: pixelated;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.hud__name {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.82);
+  text-transform: uppercase;
+  letter-spacing: var(--letter);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .hud__item {
   padding: 10px 12px;
   background: rgba(0, 0, 0, 0.18);
@@ -156,6 +186,11 @@ body {
 
 .reg__input:focus {
   border-color: rgba(255, 255, 255, 0.34);
+}
+
+.reg__register {
+  margin-top: 10px;
+  width: 100%;
 }
 
 .reg__file {
@@ -349,6 +384,9 @@ body {
   .hud {
     gap: 10px;
     flex-wrap: wrap;
+  }
+  .hud__user {
+    min-width: 100%;
   }
   .hud__item {
     min-width: 108px;

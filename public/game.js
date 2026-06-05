@@ -58,8 +58,17 @@
   const nameInput = $("#nameInput");
   const avatarUpload = $("#avatarUpload");
   const avatarRandomBtn = $("#avatarRandomBtn");
+  const registerBtn = $("#registerBtn");
+  const difficultyRow = $("#difficultyRow");
+  const registerHint = $("#registerHint");
+  const difficultyHint = $("#difficultyHint");
   const avatarCanvas = $("#avatarCanvas");
   const avatarCtx = avatarCanvas ? avatarCanvas.getContext("2d", { alpha: false }) : null;
+
+  const hudAvatar = $("#hudAvatar");
+  const hudAvatarCtx = hudAvatar ? hudAvatar.getContext("2d", { alpha: false }) : null;
+  const hudName = $("#hudName");
+  const hudUser = $("#hudUser");
 
   const roundText = $("#roundText");
   const scoreText = $("#scoreText");
@@ -192,6 +201,16 @@
     for (let y = 0; y < h; y += 4) ctxA.fillRect(0, y, w, 1);
   }
 
+  function syncHudAvatar() {
+    if (!hudAvatar || !hudAvatarCtx) return;
+    const w = hudAvatar.width;
+    const h = hudAvatar.height;
+    hudAvatarCtx.imageSmoothingEnabled = false;
+    hudAvatarCtx.fillStyle = "#050819";
+    hudAvatarCtx.fillRect(0, 0, w, h);
+    if (avatarCanvas) hudAvatarCtx.drawImage(avatarCanvas, 0, 0, w, h);
+  }
+
   function renderUploadedAvatar(dataUrl) {
     if (!avatarCanvas || !avatarCtx) return false;
     if (!dataUrl) return false;
@@ -229,6 +248,8 @@
         localStorage.setItem("pr_avatar", avatarCanvas.toDataURL("image/png"));
         localStorage.setItem("pr_avatar_mode", "upload");
       } catch (_) {}
+
+      syncHudAvatar();
     };
     img.onerror = () => {};
     return true;
@@ -826,6 +847,7 @@
     let runId = "----";
     let runSeed = "--------";
     let playerName = "";
+    let registered = false;
 
     let roundIndex = 0;
     let score = 0;
@@ -857,6 +879,7 @@
       const shownRound = phase === "title" ? "--" : String(roundIndex + 1).padStart(2, "0");
       roundText.textContent = `${shownRound} / ${phase === "title" ? "--" : String(ROUNDS).padStart(2, "0")}`;
       scoreText.textContent = String(score);
+      if (hudName) hudName.textContent = playerName ? playerName.toUpperCase() : "--";
     }
 
     function setStatus(text) {
@@ -932,7 +955,7 @@
 
     function startGame(dKey) {
       const nameNow = normalizeName(nameInput ? nameInput.value : "");
-      if (!nameNow) return;
+      if (!nameNow || !registered) return;
       playerName = nameNow;
 
       difficultyKey = dKey;
@@ -1260,7 +1283,7 @@
         btn.addEventListener("click", (e) => {
           audio.ensure();
           const nameNow = normalizeName(nameInput ? nameInput.value : "");
-          if (!nameNow) return;
+          if (!nameNow || !registered) return;
           const dKey = e.currentTarget.getAttribute("data-difficulty");
           if (!DIFFICULTIES[dKey]) return;
           setScreen("game");
@@ -1335,41 +1358,74 @@
       hideChoices();
       wire();
 
-      const stored = normalizeName(localStorage.getItem("pr_name") || "");
-      if (nameInput) {
-        nameInput.value = stored;
-      }
+      const storedName = normalizeName(localStorage.getItem("pr_name") || "");
+      if (nameInput) nameInput.value = storedName;
+
+      registered = localStorage.getItem("pr_registered") === "1" && !!storedName;
+      playerName = registered ? storedName : "";
+      updateHud();
+
       const storedAvatar = localStorage.getItem("pr_avatar") || "";
       const storedAvatarMode = localStorage.getItem("pr_avatar_mode") || "";
       if (storedAvatar && storedAvatarMode === "upload") {
         renderUploadedAvatar(storedAvatar);
       } else {
-        renderAvatar(stored || String(Date.now()));
+        renderAvatar(storedName || String(Date.now()));
+        syncHudAvatar();
       }
 
       const difficultyButtons = Array.from(document.querySelectorAll("[data-difficulty]"));
+
+      function setRegistrationUi() {
+        if (difficultyRow) difficultyRow.classList.toggle("hidden", !registered);
+        if (registerHint) registerHint.classList.toggle("hidden", registered);
+        if (difficultyHint) difficultyHint.classList.toggle("hidden", !registered);
+        for (const b of difficultyButtons) b.disabled = !registered;
+        if (registerBtn) registerBtn.disabled = !normalizeName(nameInput ? nameInput.value : "");
+        if (hudUser) hudUser.setAttribute("aria-hidden", registered ? "false" : "true");
+      }
+
+      function doRegister() {
+        const nameNow = normalizeName(nameInput ? nameInput.value : "");
+        if (!nameNow) return;
+        registered = true;
+        playerName = nameNow;
+        try {
+          localStorage.setItem("pr_name", nameNow);
+          localStorage.setItem("pr_registered", "1");
+        } catch (_) {}
+        updateHud();
+        syncHudAvatar();
+        setRegistrationUi();
+      }
+
       function syncRegistrationState() {
         const nameNow = normalizeName(nameInput ? nameInput.value : "");
-        if (nameInput) {
+        try {
           localStorage.setItem("pr_name", nameNow);
-          const mode = localStorage.getItem("pr_avatar_mode") || "";
-          if (mode !== "upload") renderAvatar(nameNow || String(Date.now()));
-        }
-        for (const b of difficultyButtons) b.disabled = !nameNow;
+          localStorage.removeItem("pr_registered");
+        } catch (_) {}
+
+        registered = false;
+        playerName = "";
+
+        const mode = localStorage.getItem("pr_avatar_mode") || "";
+        if (mode !== "upload") renderAvatar(nameNow || String(Date.now()));
+        syncHudAvatar();
+        updateHud();
+        setRegistrationUi();
       }
 
       if (nameInput) {
         nameInput.addEventListener("input", syncRegistrationState);
         nameInput.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") {
-            const nameNow = normalizeName(nameInput.value);
-            if (!nameNow) return;
-            const btn = difficultyButtons.find((b) => !b.disabled) || difficultyButtons[0];
-            if (btn && btn.getAttribute("data-difficulty")) btn.click();
-          }
+          if (e.key !== "Enter") return;
+          e.preventDefault();
+          doRegister();
         });
       }
-      syncRegistrationState();
+      if (registerBtn) registerBtn.addEventListener("click", doRegister);
+      setRegistrationUi();
 
       if (avatarUpload) {
         avatarUpload.addEventListener("change", () => {
@@ -1392,6 +1448,7 @@
           } catch (_) {}
           const nameNow = normalizeName(nameInput ? nameInput.value : "");
           renderAvatar(nameNow || String(Date.now()));
+          syncHudAvatar();
         });
       }
 
