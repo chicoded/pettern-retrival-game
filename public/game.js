@@ -999,7 +999,7 @@
     }
 
     function getHookLine() {
-      return "the network stored a memory. recall it.";
+      return "Recall complete. Your mental GPU is running hot. 🔥";
     }
 
     function getSharePayload() {
