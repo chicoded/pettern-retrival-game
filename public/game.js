@@ -998,13 +998,16 @@
       return `PATTERN RETRIEVAL — ${score}/${ROUNDS} (${difficulty.label})`;
     }
 
+    function getHookLine() {
+      return "the network stored a memory. recall it.";
+    }
+
     function getSharePayload() {
       const squares = results.join("");
       const url = getShareUrl();
       return [
+        getHookLine(),
         getResultLine(),
-        `NAME:${playerName || "--"}`,
-        `RUN:${runId} SEED:${runSeed}`,
         squares,
         url,
       ].join("\n");
@@ -1057,12 +1060,17 @@
 
       ctx2.fillStyle = "rgba(255,255,255,0.62)";
       ctx2.font = "30px VT323, monospace";
-      ctx2.fillText(`MODE: ${difficulty.label} · RUN: ${runId} · SEED: ${runSeed}`, titleX, y);
+      ctx2.fillText(`MODE: ${difficulty.label}`, titleX, y);
       y += 56;
 
       ctx2.fillStyle = "rgba(255,255,255,0.62)";
       ctx2.font = "30px VT323, monospace";
       ctx2.fillText(`NAME: ${playerName || "--"}`, titleX, y);
+      y += 56;
+
+      ctx2.fillStyle = "rgba(255,255,255,0.62)";
+      ctx2.font = "30px VT323, monospace";
+      ctx2.fillText(getHookLine(), titleX, y);
       y += 56;
 
       ctx2.fillStyle = "rgba(255,255,255,0.92)";
@@ -1354,14 +1362,13 @@
       if (tweetBtn) {
         tweetBtn.addEventListener("click", async () => {
           const payload = shareText.textContent || getSharePayload();
-          const url = getShareUrl();
 
           const blob = await getShareImageBlob();
           if (blob && navigator.canShare) {
             try {
               const file = new File([blob], getShareImageFileName(), { type: "image/png" });
               if (navigator.canShare({ files: [file] }) && navigator.share) {
-                await navigator.share({ files: [file], text: payload, url });
+                await navigator.share({ files: [file], text: payload });
                 copyHint.textContent = "SHARE SENT";
                 return;
               }
