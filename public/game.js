@@ -1270,9 +1270,6 @@
           if (Math.random() < prob) {
             currentGrid[i] = desired;
             if (desired === targetGrid[i] && lockAt[i] < 0) lockAt[i] = now;
-          } else if (temp > 0.5 && Math.random() < 0.015) {
-            if (Math.random() < 0.25) currentGrid[i] = null;
-            else currentGrid[i] = Object.keys(PALETTE)[randInt(6)];
           }
         }
       }
