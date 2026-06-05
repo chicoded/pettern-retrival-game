@@ -59,6 +59,7 @@
   const avatarUpload = $("#avatarUpload");
   const avatarRandomBtn = $("#avatarRandomBtn");
   const registerBtn = $("#registerBtn");
+  const regBlock = $("#regBlock");
   const difficultyRow = $("#difficultyRow");
   const registerHint = $("#registerHint");
   const difficultyHint = $("#difficultyHint");
@@ -1377,11 +1378,16 @@
       const difficultyButtons = Array.from(document.querySelectorAll("[data-difficulty]"));
 
       function setRegistrationUi() {
+        if (regBlock) regBlock.classList.toggle("hidden", registered);
         if (difficultyRow) difficultyRow.classList.toggle("hidden", !registered);
         if (registerHint) registerHint.classList.toggle("hidden", registered);
         if (difficultyHint) difficultyHint.classList.toggle("hidden", !registered);
         for (const b of difficultyButtons) b.disabled = !registered;
-        if (registerBtn) registerBtn.disabled = !normalizeName(nameInput ? nameInput.value : "");
+        const canRegister = !!normalizeName(nameInput ? nameInput.value : "");
+        if (registerBtn) registerBtn.disabled = registered || !canRegister;
+        if (nameInput) nameInput.disabled = false;
+        if (avatarUpload) avatarUpload.disabled = false;
+        if (avatarRandomBtn) avatarRandomBtn.disabled = false;
         if (hudUser) hudUser.setAttribute("aria-hidden", registered ? "false" : "true");
       }
 

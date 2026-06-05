@@ -36,7 +36,7 @@
         <div class="panel">
           <div class="panel__headline">PATTERN RETRIEVAL</div>
           <div class="panel__sub">the network has stored a memory. recall it.</div>
-          <div class="reg">
+          <div class="reg" id="regBlock">
             <div class="reg__row">
               <div class="reg__label">REGISTRATION</div>
               <input
@@ -49,10 +49,10 @@
                 placeholder="enter name"
                 aria-label="registration name"
               />
-              <button class="btn reg__register" id="registerBtn" type="button">REGISTER</button>
               <div class="reg__label reg__label--sub">AVATAR</div>
               <input class="reg__file" id="avatarUpload" type="file" accept="image/*" aria-label="upload avatar" />
               <button class="btn btn--ghost reg__random" id="avatarRandomBtn" type="button">USE RANDOM</button>
+              <button class="btn reg__register" id="registerBtn" type="button">REGISTER</button>
             </div>
             <div class="reg__avatar">
               <canvas id="avatarCanvas" width="96" height="96" aria-label="pixel face"></canvas>
