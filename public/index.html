@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pattern Retrieval: Guess the Glyph</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="app" aria-live="polite">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand__title">PATTERN RETRIEVAL</div>
+          <div class="brand__subtitle">GUESS THE GLYPH</div>
+        </div>
+        <div class="hud">
+          <div class="hud__item">
+            <div class="hud__label">ROUND</div>
+            <div class="hud__value" id="roundText">-- / --</div>
+          </div>
+          <div class="hud__item">
+            <div class="hud__label">SCORE</div>
+            <div class="hud__value" id="scoreText">0</div>
+          </div>
+        </div>
+      </header>
+
+      <section class="screen screen--title" id="screenTitle">
+        <div class="panel">
+          <div class="panel__headline">PATTERN RETRIEVAL</div>
+          <div class="panel__sub">Guess what the network remembers.</div>
+          <div class="panel__row">
+            <button class="btn" data-difficulty="easy">EASY</button>
+            <button class="btn" data-difficulty="medium">MEDIUM</button>
+            <button class="btn" data-difficulty="hard">HARD</button>
+          </div>
+          <div class="panel__hint">
+            Watch the noise converge, then choose what you saw.
+          </div>
+        </div>
+      </section>
+
+      <section class="screen screen--game hidden" id="screenGame">
+        <div class="stage">
+          <div class="crt">
+            <div class="crt__glass">
+              <canvas id="gridCanvas" width="480" height="480" aria-label="Pixel recall display"></canvas>
+              <div class="crt__overlay" aria-hidden="true"></div>
+            </div>
+          </div>
+          <div class="statusline" id="statusText">RECALLING...</div>
+        </div>
+
+        <div class="choices hidden" id="choices">
+          <button class="choice" data-choice="0"></button>
+          <button class="choice" data-choice="1"></button>
+          <button class="choice" data-choice="2"></button>
+          <button class="choice" data-choice="3"></button>
+        </div>
+      </section>
+
+      <section class="screen screen--end hidden" id="screenEnd">
+        <div class="panel">
+          <div class="panel__headline">RESULT</div>
+          <div class="panel__sub" id="finalText">--</div>
+          <pre class="sharebox" id="shareText"></pre>
+          <div class="panel__row">
+            <button class="btn" id="copyBtn">COPY</button>
+            <button class="btn btn--ghost" id="againBtn">PLAY AGAIN</button>
+          </div>
+          <div class="panel__hint" id="copyHint"></div>
+        </div>
+      </section>
+    </main>
+
+    <script src="./game.js"></script>
+  </body>
+</html>
