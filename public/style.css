@@ -282,7 +282,7 @@ body {
   width: 100%;
   display: grid;
   place-items: center;
-  gap: 10px;
+  gap: 6px;
 }
 
 .crt {
@@ -344,7 +344,7 @@ body {
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 6px;
 }
 
 .choice {
@@ -393,5 +393,9 @@ body {
   }
   .brand__title {
     font-size: 30px;
+  }
+  .crt {
+    width: min(460px, 88vw);
+    padding: 10px;
   }
 }
