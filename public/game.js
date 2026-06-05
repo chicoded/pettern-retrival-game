@@ -55,6 +55,12 @@
   const screenGame = $("#screenGame");
   const screenEnd = $("#screenEnd");
 
+  const nameInput = $("#nameInput");
+  const avatarUpload = $("#avatarUpload");
+  const avatarRandomBtn = $("#avatarRandomBtn");
+  const avatarCanvas = $("#avatarCanvas");
+  const avatarCtx = avatarCanvas ? avatarCanvas.getContext("2d", { alpha: false }) : null;
+
   const roundText = $("#roundText");
   const scoreText = $("#scoreText");
   const statusText = $("#statusText");
@@ -87,6 +93,145 @@
 
   function randInt(n) {
     return Math.floor(Math.random() * n);
+  }
+
+  function hash32(str) {
+    let h = 2166136261;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
+
+  function mulberry32(seed) {
+    let a = seed >>> 0;
+    return () => {
+      a |= 0;
+      a = (a + 0x6d2b79f5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function normalizeName(raw) {
+    const s = String(raw || "").replace(/\s+/g, " ").trim();
+    return s;
+  }
+
+  function renderAvatar(seedStr) {
+    if (!avatarCanvas || !avatarCtx) return;
+    const ctxA = avatarCtx;
+    const w = avatarCanvas.width;
+    const h = avatarCanvas.height;
+    ctxA.imageSmoothingEnabled = false;
+    ctxA.fillStyle = "#050819";
+    ctxA.fillRect(0, 0, w, h);
+
+    const seed = hash32(seedStr || String(Date.now()));
+    const rnd = mulberry32(seed);
+
+    const cells = 12;
+    const cell = Math.floor(w / cells);
+    const ox = Math.floor((w - cell * cells) / 2);
+    const oy = Math.floor((h - cell * cells) / 2);
+
+    const keys = ["c", "m", "y", "g", "w", "a"];
+    const bgKey = keys[Math.floor(rnd() * keys.length)];
+    const faceKey = keys[Math.floor(rnd() * keys.length)];
+    const accentKey = keys[Math.floor(rnd() * keys.length)];
+
+    for (let y = 0; y < cells; y++) {
+      for (let x = 0; x < cells; x++) {
+        if (rnd() < 0.18) {
+          ctxA.fillStyle = PALETTE[bgKey];
+          ctxA.globalAlpha = 0.06;
+          ctxA.fillRect(ox + x * cell, oy + y * cell, cell, cell);
+        }
+      }
+    }
+    ctxA.globalAlpha = 1;
+
+    const mid = Math.floor(cells / 2);
+    for (let y = 2; y < 11; y++) {
+      for (let x = 0; x < mid; x++) {
+        const dx = mid - x;
+        const head = dx * dx + (y - 6) * (y - 6) <= 22;
+        if (!head) continue;
+        const p = 0.55 + (y >= 8 ? 0.12 : 0) + (dx <= 2 ? 0.08 : 0);
+        if (rnd() < p) {
+          const cKey = rnd() < 0.16 ? accentKey : faceKey;
+          ctxA.fillStyle = PALETTE[cKey];
+          ctxA.fillRect(ox + x * cell, oy + y * cell, cell, cell);
+          ctxA.fillRect(ox + (cells - 1 - x) * cell, oy + y * cell, cell, cell);
+        }
+      }
+    }
+
+    const eyeY = 6;
+    const eyeX = 4;
+    ctxA.fillStyle = "#050819";
+    ctxA.fillRect(ox + eyeX * cell, oy + eyeY * cell, cell, cell);
+    ctxA.fillRect(ox + (cells - 1 - eyeX) * cell, oy + eyeY * cell, cell, cell);
+    if (rnd() < 0.65) {
+      ctxA.fillStyle = PALETTE["w"];
+      ctxA.globalAlpha = 0.9;
+      ctxA.fillRect(ox + (eyeX * cell + Math.floor(cell * 0.55)), oy + (eyeY * cell + Math.floor(cell * 0.25)), Math.max(1, Math.floor(cell * 0.25)), Math.max(1, Math.floor(cell * 0.25)));
+      ctxA.fillRect(ox + ((cells - 1 - eyeX) * cell + Math.floor(cell * 0.55)), oy + (eyeY * cell + Math.floor(cell * 0.25)), Math.max(1, Math.floor(cell * 0.25)), Math.max(1, Math.floor(cell * 0.25)));
+      ctxA.globalAlpha = 1;
+    }
+
+    const mouthY = 9;
+    ctxA.fillStyle = "#050819";
+    ctxA.globalAlpha = 1;
+    ctxA.fillRect(ox + 5 * cell, oy + mouthY * cell, cell, cell);
+    ctxA.fillRect(ox + 6 * cell, oy + mouthY * cell, cell, cell);
+
+    ctxA.fillStyle = "rgba(0,0,0,0.18)";
+    for (let y = 0; y < h; y += 4) ctxA.fillRect(0, y, w, 1);
+  }
+
+  function renderUploadedAvatar(dataUrl) {
+    if (!avatarCanvas || !avatarCtx) return false;
+    if (!dataUrl) return false;
+
+    const img = new Image();
+    img.decoding = "async";
+    img.src = dataUrl;
+    img.onload = () => {
+      const w = avatarCanvas.width;
+      const h = avatarCanvas.height;
+      const small = document.createElement("canvas");
+      small.width = 12;
+      small.height = 12;
+      const sctx = small.getContext("2d", { alpha: false });
+      sctx.fillStyle = "#050819";
+      sctx.fillRect(0, 0, small.width, small.height);
+
+      const scale = Math.max(small.width / img.width, small.height / img.height);
+      const dw = img.width * scale;
+      const dh = img.height * scale;
+      const dx = (small.width - dw) / 2;
+      const dy = (small.height - dh) / 2;
+      sctx.imageSmoothingEnabled = true;
+      sctx.drawImage(img, dx, dy, dw, dh);
+
+      const ctxA = avatarCtx;
+      ctxA.imageSmoothingEnabled = false;
+      ctxA.fillStyle = "#050819";
+      ctxA.fillRect(0, 0, w, h);
+      ctxA.drawImage(small, 0, 0, w, h);
+      ctxA.fillStyle = "rgba(0,0,0,0.18)";
+      for (let y = 0; y < h; y += 4) ctxA.fillRect(0, y, w, 1);
+
+      try {
+        localStorage.setItem("pr_avatar", avatarCanvas.toDataURL("image/png"));
+        localStorage.setItem("pr_avatar_mode", "upload");
+      } catch (_) {}
+    };
+    img.onerror = () => {};
+    return true;
   }
 
   function shuffleInPlace(arr) {
@@ -680,6 +825,7 @@
     let difficulty = null;
     let runId = "----";
     let runSeed = "--------";
+    let playerName = "";
 
     let roundIndex = 0;
     let score = 0;
@@ -721,7 +867,8 @@
       if (!paramText) return;
       const count = SPECS.length;
       const label = difficulty ? difficulty.label : "--";
-      paramText.textContent = `MODE: ${label} · RUN: ${runId} · SEED: ${runSeed} · GRID: 24×24 · ROUNDS: ${ROUNDS} · SPECIMENS: ${String(count).padStart(2, "0")}`;
+      const who = playerName ? `NAME: ${playerName}` : "NAME: --";
+      paramText.textContent = `MODE: ${label} · ${who} · RUN: ${runId} · SEED: ${runSeed} · GRID: 24×24 · ROUNDS: ${ROUNDS} · SPECIMENS: ${String(count).padStart(2, "0")}`;
     }
 
     function hideChoices() {
@@ -784,10 +931,14 @@
     }
 
     function startGame(dKey) {
+      const nameNow = normalizeName(nameInput ? nameInput.value : "");
+      if (!nameNow) return;
+      playerName = nameNow;
+
       difficultyKey = dKey;
       difficulty = DIFFICULTIES[difficultyKey];
       runId = String(Date.now()).slice(-6).padStart(6, "0");
-      runSeed = ((Math.random() * 0xffffffff) >>> 0).toString(16).toUpperCase().padStart(8, "0");
+      runSeed = (hash32(`${playerName}|${runId}`) >>> 0).toString(16).toUpperCase().padStart(8, "0");
       roundIndex = 0;
       score = 0;
       results = [];
@@ -826,6 +977,7 @@
       const url = getShareUrl();
       return [
         getResultLine(),
+        `NAME:${playerName || "--"}`,
         `RUN:${runId} SEED:${runSeed}`,
         squares,
         url,
@@ -882,10 +1034,30 @@
       ctx2.fillText(`MODE: ${difficulty.label} · RUN: ${runId} · SEED: ${runSeed}`, titleX, y);
       y += 56;
 
+      ctx2.fillStyle = "rgba(255,255,255,0.62)";
+      ctx2.font = "30px VT323, monospace";
+      ctx2.fillText(`NAME: ${playerName || "--"}`, titleX, y);
+      y += 56;
+
       ctx2.fillStyle = "rgba(255,255,255,0.92)";
       ctx2.font = "44px VT323, monospace";
       ctx2.fillText(`RETRIEVAL COMPLETE · ${score}/${ROUNDS}`, titleX, y);
       y += 84;
+
+      if (avatarCanvas) {
+        const ax = w - 80 - 220;
+        const ay = 176;
+        const aw = 220;
+        const ah = 220;
+        ctx2.strokeStyle = "rgba(255,255,255,0.16)";
+        ctx2.lineWidth = 2;
+        ctx2.strokeRect(ax - 14, ay - 14, aw + 28, ah + 28);
+        ctx2.fillStyle = "rgba(0,0,0,0.22)";
+        ctx2.fillRect(ax - 14, ay - 14, aw + 28, ah + 28);
+        ctx2.imageSmoothingEnabled = false;
+        ctx2.drawImage(avatarCanvas, ax, ay, aw, ah);
+        ctx2.imageSmoothingEnabled = true;
+      }
 
       const squares = results.join("");
       ctx2.font = "62px VT323, monospace";
@@ -1087,6 +1259,8 @@
       document.querySelectorAll("[data-difficulty]").forEach((btn) => {
         btn.addEventListener("click", (e) => {
           audio.ensure();
+          const nameNow = normalizeName(nameInput ? nameInput.value : "");
+          if (!nameNow) return;
           const dKey = e.currentTarget.getAttribute("data-difficulty");
           if (!DIFFICULTIES[dKey]) return;
           setScreen("game");
@@ -1113,7 +1287,8 @@
         downloadBtn.addEventListener("click", async () => {
           renderShareCard();
           if (!shareCanvas) return;
-          const file = `pattern-retrieval_${difficulty.label.toLowerCase()}_${score}-${ROUNDS}_run-${runId}.png`;
+          const safeName = (playerName || "anonymous").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+          const file = `pattern-retrieval_${safeName}_${difficulty.label.toLowerCase()}_${score}-${ROUNDS}_run-${runId}.png`;
           if (shareCanvas.toBlob) {
             shareCanvas.toBlob((blob) => {
               if (!blob) return;
@@ -1159,6 +1334,66 @@
       setStatus("RECALLING...");
       hideChoices();
       wire();
+
+      const stored = normalizeName(localStorage.getItem("pr_name") || "");
+      if (nameInput) {
+        nameInput.value = stored;
+      }
+      const storedAvatar = localStorage.getItem("pr_avatar") || "";
+      const storedAvatarMode = localStorage.getItem("pr_avatar_mode") || "";
+      if (storedAvatar && storedAvatarMode === "upload") {
+        renderUploadedAvatar(storedAvatar);
+      } else {
+        renderAvatar(stored || String(Date.now()));
+      }
+
+      const difficultyButtons = Array.from(document.querySelectorAll("[data-difficulty]"));
+      function syncRegistrationState() {
+        const nameNow = normalizeName(nameInput ? nameInput.value : "");
+        if (nameInput) {
+          localStorage.setItem("pr_name", nameNow);
+          const mode = localStorage.getItem("pr_avatar_mode") || "";
+          if (mode !== "upload") renderAvatar(nameNow || String(Date.now()));
+        }
+        for (const b of difficultyButtons) b.disabled = !nameNow;
+      }
+
+      if (nameInput) {
+        nameInput.addEventListener("input", syncRegistrationState);
+        nameInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            const nameNow = normalizeName(nameInput.value);
+            if (!nameNow) return;
+            const btn = difficultyButtons.find((b) => !b.disabled) || difficultyButtons[0];
+            if (btn && btn.getAttribute("data-difficulty")) btn.click();
+          }
+        });
+      }
+      syncRegistrationState();
+
+      if (avatarUpload) {
+        avatarUpload.addEventListener("change", () => {
+          const f = avatarUpload.files && avatarUpload.files[0];
+          if (!f) return;
+          const reader = new FileReader();
+          reader.onload = () => {
+            const url = String(reader.result || "");
+            renderUploadedAvatar(url);
+          };
+          reader.readAsDataURL(f);
+        });
+      }
+
+      if (avatarRandomBtn) {
+        avatarRandomBtn.addEventListener("click", () => {
+          try {
+            localStorage.removeItem("pr_avatar");
+            localStorage.setItem("pr_avatar_mode", "random");
+          } catch (_) {}
+          const nameNow = normalizeName(nameInput ? nameInput.value : "");
+          renderAvatar(nameNow || String(Date.now()));
+        });
+      }
 
       render.resize();
       const ro = new ResizeObserver(() => render.resize());

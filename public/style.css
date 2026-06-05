@@ -112,6 +112,89 @@ body {
   color: var(--muted);
 }
 
+.reg {
+  margin-top: 12px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.reg__row {
+  flex: 1 1 340px;
+}
+
+.reg__label {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.62);
+  text-transform: uppercase;
+}
+
+.reg__label--sub {
+  margin-top: 10px;
+}
+
+.reg__input {
+  margin-top: 8px;
+  width: 100%;
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.12);
+  color: rgba(255, 255, 255, 0.92);
+  font: inherit;
+  letter-spacing: var(--letter);
+  padding: 12px 12px;
+  border-radius: 10px;
+  outline: none;
+  text-transform: none;
+}
+
+.reg__input::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.reg__input:focus {
+  border-color: rgba(255, 255, 255, 0.34);
+}
+
+.reg__file {
+  margin-top: 8px;
+  width: 100%;
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.12);
+  color: rgba(255, 255, 255, 0.72);
+  font: inherit;
+  letter-spacing: var(--letter);
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+.reg__random {
+  margin-top: 10px;
+  width: 100%;
+}
+
+.reg__avatar {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+#avatarCanvas {
+  width: 96px;
+  height: 96px;
+  display: block;
+  image-rendering: pixelated;
+}
+
 .panel__row {
   display: flex;
   gap: 10px;

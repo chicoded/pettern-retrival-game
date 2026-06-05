@@ -32,13 +32,34 @@
         <div class="panel">
           <div class="panel__headline">PATTERN RETRIEVAL</div>
           <div class="panel__sub">the network has stored a memory. recall it.</div>
+          <div class="reg">
+            <div class="reg__row">
+              <div class="reg__label">REGISTRATION</div>
+              <input
+                class="reg__input"
+                id="nameInput"
+                type="text"
+                inputmode="text"
+                autocomplete="nickname"
+                maxlength="18"
+                placeholder="enter name"
+                aria-label="registration name"
+              />
+              <div class="reg__label reg__label--sub">AVATAR</div>
+              <input class="reg__file" id="avatarUpload" type="file" accept="image/*" aria-label="upload avatar" />
+              <button class="btn btn--ghost reg__random" id="avatarRandomBtn" type="button">USE RANDOM</button>
+            </div>
+            <div class="reg__avatar">
+              <canvas id="avatarCanvas" width="96" height="96" aria-label="pixel face"></canvas>
+            </div>
+          </div>
           <div class="panel__row">
             <button class="btn" data-difficulty="easy">EASY</button>
             <button class="btn" data-difficulty="medium">MEDIUM</button>
             <button class="btn" data-difficulty="hard">HARD</button>
           </div>
           <div class="panel__hint">
-            guest mode · no login. watch the scatter converge. choose the label.
+            enter a name. watch the scatter converge. choose the label.
           </div>
         </div>
       </section>
