@@ -94,6 +94,9 @@
   const shareCanvas = $("#shareCanvas");
   const shareCtx = shareCanvas ? shareCanvas.getContext("2d") : null;
 
+  const bgCanvas = $("#bgCanvas");
+  const bgCtx = bgCanvas ? bgCanvas.getContext("2d", { alpha: false }) : null;
+
   const canvas = $("#gridCanvas");
   const ctx = canvas.getContext("2d", { alpha: false });
 
@@ -832,6 +835,258 @@
     return { resize, clear, drawPixel, postFX };
   })();
 
+  const background = (() => {
+    if (!bgCanvas || !bgCtx) return { init: () => {}, draw: () => {} };
+
+    const ctxB = bgCtx;
+    let dpr = 1;
+    let w = 0;
+    let h = 0;
+
+    let lastNow = 0;
+
+    const trails = [];
+    const TRAIL_MAX = 220;
+
+    let ghostTarget = null;
+    let ghostTargetGrid = null;
+    let ghostCurrent = new Array(GRID * GRID).fill(null);
+    let ghostPhase = "idle";
+    let ghostPhaseStart = 0;
+    let nextGhostAt = 0;
+
+    function resize() {
+      dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+      w = Math.max(1, Math.round(window.innerWidth * dpr));
+      h = Math.max(1, Math.round(window.innerHeight * dpr));
+      bgCanvas.width = w;
+      bgCanvas.height = h;
+      ctxB.imageSmoothingEnabled = false;
+    }
+
+    function scheduleNextGhost(now) {
+      nextGhostAt = now + (14000 + Math.random() * 12000);
+    }
+
+    function startGhost(now) {
+      ghostTarget = SPECS[randInt(SPECS.length)];
+      ghostTargetGrid = ghostTarget.grid;
+      ghostCurrent = new Array(GRID * GRID).fill(null);
+      ghostPhase = "scatter";
+      ghostPhaseStart = now;
+    }
+
+    function phaseTo(p, now) {
+      ghostPhase = p;
+      ghostPhaseStart = now;
+    }
+
+    function stepGhost(now) {
+      if (!ghostTargetGrid) return;
+
+      if (ghostPhase === "scatter") {
+        const keys = ["c", "m"];
+        const litProb = 0.08;
+        for (let i = 0; i < ghostCurrent.length; i++) {
+          ghostCurrent[i] = Math.random() < litProb ? keys[randInt(keys.length)] : null;
+        }
+        if (now - ghostPhaseStart > 600) phaseTo("recall", now);
+        return;
+      }
+
+      if (ghostPhase === "recall") {
+        const t = clamp01((now - ghostPhaseStart) / 5200);
+        const p = easeInOutCubic(t);
+
+        const passes = 1 + Math.floor(p * 2);
+        for (let pass = 0; pass < passes; pass++) {
+          const start = randInt(ghostCurrent.length);
+          for (let k = 0; k < ghostCurrent.length; k++) {
+            const i = (start + k) % ghostCurrent.length;
+            const desired = ghostTargetGrid[i];
+            const cur = ghostCurrent[i];
+            if (desired === cur) continue;
+
+            const x = i % GRID;
+            const y = (i / GRID) | 0;
+            let agree = 0;
+            let tot = 0;
+            if (x > 0) {
+              tot++;
+              if (ghostTargetGrid[i - 1] && ghostCurrent[i - 1]) agree++;
+            }
+            if (x < GRID - 1) {
+              tot++;
+              if (ghostTargetGrid[i + 1] && ghostCurrent[i + 1]) agree++;
+            }
+            if (y > 0) {
+              tot++;
+              if (ghostTargetGrid[i - GRID] && ghostCurrent[i - GRID]) agree++;
+            }
+            if (y < GRID - 1) {
+              tot++;
+              if (ghostTargetGrid[i + GRID] && ghostCurrent[i + GRID]) agree++;
+            }
+            const neighborBoost = tot ? agree / tot : 0;
+
+            const base = desired ? 0.02 : 0.02;
+            let prob = base + p * (desired ? 0.14 : 0.12) + neighborBoost * 0.08;
+            prob = clamp01(prob);
+            if (Math.random() < prob) ghostCurrent[i] = desired;
+          }
+        }
+
+        if (t >= 1) phaseTo("hold", now);
+        return;
+      }
+
+      if (ghostPhase === "hold") {
+        if (now - ghostPhaseStart > 1200) phaseTo("fade", now);
+        return;
+      }
+
+      if (ghostPhase === "fade") {
+        const t = clamp01((now - ghostPhaseStart) / 1200);
+        const keys = ["c", "m"];
+        const wipe = 0.02 + t * 0.18;
+        for (let n = 0; n < Math.floor(ghostCurrent.length * wipe); n++) {
+          const i = randInt(ghostCurrent.length);
+          if (Math.random() < 0.85) ghostCurrent[i] = null;
+          else ghostCurrent[i] = keys[randInt(keys.length)];
+        }
+        if (t >= 1) {
+          ghostTarget = null;
+          ghostTargetGrid = null;
+          ghostCurrent = new Array(GRID * GRID).fill(null);
+          ghostPhase = "idle";
+          scheduleNextGhost(now);
+        }
+      }
+    }
+
+    function spawnTrails(dt) {
+      const rate = 0.9;
+      const count = Math.random() < rate * dt ? 1 : 0;
+      for (let i = 0; i < count; i++) {
+        trails.push({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          a0: 0.22 + Math.random() * 0.18,
+          life: 0,
+          ttl: 3200 + Math.random() * 2200,
+          c: Math.random() < 0.12 ? "m" : "c",
+          r: (Math.random() < 0.5 ? 1 : 2) * dpr,
+        });
+      }
+      while (trails.length > TRAIL_MAX) trails.shift();
+    }
+
+    function stepTrails(dtMs) {
+      for (let i = trails.length - 1; i >= 0; i--) {
+        const p = trails[i];
+        p.life += dtMs;
+        if (p.life >= p.ttl) trails.splice(i, 1);
+      }
+    }
+
+    function drawPostFX() {
+      ctxB.globalCompositeOperation = "source-over";
+      ctxB.globalAlpha = 1;
+
+      ctxB.fillStyle = "rgba(0,0,0,0.08)";
+      const step = Math.max(2, Math.round(3 * dpr));
+      for (let y = 0; y < h; y += step) ctxB.fillRect(0, y, w, 1);
+
+      const borderStep = Math.max(1, Math.round(Math.min(w, h) / 240));
+      const rings = 12;
+      for (let r = 0; r < rings; r++) {
+        const inset = r * borderStep;
+        const alpha = 0.008 + r * 0.004;
+        ctxB.fillStyle = `rgba(0,0,0,${alpha.toFixed(4)})`;
+        ctxB.fillRect(0, 0, w, inset + borderStep);
+        ctxB.fillRect(0, h - (inset + borderStep), w, inset + borderStep);
+        ctxB.fillRect(0, inset, inset + borderStep, h - inset * 2);
+        ctxB.fillRect(w - (inset + borderStep), inset, inset + borderStep, h - inset * 2);
+      }
+    }
+
+    function drawGhost(now) {
+      if (!ghostCurrent) return;
+      const min = Math.min(w, h);
+      const gridPx = min * 0.52;
+      const cell = Math.max(2, Math.floor(gridPx / GRID));
+      const gw = cell * GRID;
+      const gh = cell * GRID;
+      const ox = Math.floor((w - gw) / 2);
+      const oy = Math.floor((h - gh) / 2);
+
+      let alpha = 0.085;
+      if (ghostPhase === "hold") alpha = 0.11;
+      if (ghostPhase === "fade") alpha = 0.085;
+
+      ctxB.globalCompositeOperation = "source-over";
+      for (let y = 0; y < GRID; y++) {
+        for (let x = 0; x < GRID; x++) {
+          const i = y * GRID + x;
+          const c = ghostCurrent[i];
+          if (!c) continue;
+          ctxB.globalAlpha = alpha;
+          ctxB.fillStyle = PALETTE[c] || PALETTE.c;
+          ctxB.fillRect(ox + x * cell, oy + y * cell, cell, cell);
+          ctxB.globalAlpha = alpha * 0.28;
+          ctxB.fillRect(ox + x * cell - 1 * dpr, oy + y * cell - 1 * dpr, cell + 2 * dpr, cell + 2 * dpr);
+        }
+      }
+      ctxB.globalAlpha = 1;
+    }
+
+    function drawTrails() {
+      ctxB.globalCompositeOperation = "source-over";
+      for (const p of trails) {
+        const t = clamp01(p.life / p.ttl);
+        const a = p.a0 * (1 - t) * (1 - t);
+        if (a <= 0.001) continue;
+        ctxB.globalAlpha = a;
+        ctxB.fillStyle = PALETTE[p.c] || PALETTE.c;
+        ctxB.fillRect(p.x | 0, p.y | 0, p.r, p.r);
+      }
+      ctxB.globalAlpha = 1;
+    }
+
+    function draw(now) {
+      if (!lastNow) lastNow = now;
+      const dtMs = Math.min(80, Math.max(0, now - lastNow));
+      lastNow = now;
+
+      ctxB.globalAlpha = 1;
+      ctxB.globalCompositeOperation = "source-over";
+      ctxB.fillStyle = "#0a0e27";
+      ctxB.fillRect(0, 0, w, h);
+
+      spawnTrails(dtMs / 1000);
+      stepTrails(dtMs);
+
+      if (ghostPhase === "idle") {
+        if (!nextGhostAt) scheduleNextGhost(now);
+        if (now >= nextGhostAt) startGhost(now);
+      } else {
+        stepGhost(now);
+      }
+
+      drawGhost(now);
+      drawTrails();
+      drawPostFX();
+    }
+
+    function init() {
+      resize();
+      window.addEventListener("resize", resize);
+      scheduleNextGhost(performance.now());
+    }
+
+    return { init, draw };
+  })();
+
   function neighbors4(i) {
     const x = i % GRID;
     const y = (i / GRID) | 0;
@@ -1351,6 +1606,7 @@
     }
 
     function tick(now) {
+      background.draw(now);
       if (phase === "recall") stepRecall(now);
       else if (phase === "hold") stepHold(now);
       else if (phase === "scatter") stepScatter(now);
@@ -1455,6 +1711,7 @@
       setStatus("RECALLING...");
       hideChoices();
       wire();
+      background.init();
 
       const storedName = normalizeName(localStorage.getItem("pr_name") || "");
       if (nameInput) nameInput.value = storedName;
