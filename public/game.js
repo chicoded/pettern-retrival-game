@@ -58,6 +58,7 @@
   const roundText = $("#roundText");
   const scoreText = $("#scoreText");
   const statusText = $("#statusText");
+  const paramText = $("#paramText");
 
   const choicesEl = $("#choices");
   const choiceButtons = Array.from(document.querySelectorAll(".choice"));
@@ -632,7 +633,31 @@
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
-    return { resize, clear, drawPixel };
+    function postFX() {
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.globalCompositeOperation = "source-over";
+
+      const line = Math.max(1, Math.round(Math.max(1, w / (GRID * 2.0)) * 0.5));
+      const step = line * 2;
+      ctx.fillStyle = "rgba(0,0,0,0.16)";
+      for (let y = 0; y < h; y += step) ctx.fillRect(0, y, w, line);
+
+      const borderStep = Math.max(1, Math.round(Math.min(w, h) / 220));
+      const rings = 16;
+      for (let r = 0; r < rings; r++) {
+        const inset = r * borderStep;
+        const alpha = 0.012 + r * 0.0045;
+        ctx.fillStyle = `rgba(0,0,0,${alpha.toFixed(4)})`;
+        ctx.fillRect(0, 0, w, inset + borderStep);
+        ctx.fillRect(0, h - (inset + borderStep), w, inset + borderStep);
+        ctx.fillRect(0, inset, inset + borderStep, h - inset * 2);
+        ctx.fillRect(w - (inset + borderStep), inset, inset + borderStep, h - inset * 2);
+      }
+    }
+
+    return { resize, clear, drawPixel, postFX };
   })();
 
   function neighbors4(i) {
@@ -684,6 +709,13 @@
 
     function setStatus(text) {
       statusText.textContent = text;
+    }
+
+    function setReadout() {
+      if (!paramText) return;
+      const count = SPECS.length;
+      const label = difficulty ? difficulty.label : "--";
+      paramText.textContent = `MODE: ${label} · GRID: 24×24 · ROUNDS: ${ROUNDS} · SPECIMENS: ${String(count).padStart(2, "0")}`;
     }
 
     function hideChoices() {
@@ -755,6 +787,7 @@
       hideChoices();
       setScreen("game");
       updateHud();
+      setReadout();
       audio.startHum();
       startRound();
     }
@@ -762,7 +795,7 @@
     function startRound() {
       updateHud();
       hideChoices();
-      setStatus("RECALLING...");
+      setStatus("RECALLING MEMORY...");
       setTarget(roundSpecs[roundIndex]);
       buildOptions();
       randomNoiseGrid({ litProb: difficulty.noiseLitProb });
@@ -773,8 +806,7 @@
     function endGame() {
       audio.stopHum();
       setScreen("end");
-      const final = `${score} / ${ROUNDS} (${difficulty.label})`;
-      finalText.textContent = final;
+      finalText.textContent = `RETRIEVAL COMPLETE · ${score} PATTERNS RECALLED`;
 
       const squares = results.join("");
       const url = window.location.origin && window.location.origin !== "null" ? window.location.origin : "play.patternretrieval-game.app";
@@ -800,8 +832,10 @@
       if (ok) {
         score += 1;
         audio.ok();
+        setStatus(`RETRIEVAL OK · PATTERN CONFIRMED: ${correctName}`);
       } else {
         audio.bad();
+        setStatus(`RETRIEVAL FAILED · THE PATTERN WAS: ${correctName}`);
       }
       updateHud();
 
@@ -889,7 +923,7 @@
       }
 
       if (t >= 1) {
-        setStatus("SELECT:");
+        setStatus("SELECT A LABEL");
         showChoices();
         phaseTo("choices");
       }
@@ -930,6 +964,8 @@
           render.drawPixel(x, y, PALETTE[c] || PALETTE.c, base + pulse);
         }
       }
+
+      render.postFX?.();
     }
 
     function tick(now) {

@@ -14,7 +14,7 @@
       <header class="topbar">
         <div class="brand">
           <div class="brand__title">PATTERN RETRIEVAL</div>
-          <div class="brand__subtitle">GUESS THE GLYPH</div>
+          <div class="brand__subtitle">GUESS THE GLYPH · STATUS: ONLINE</div>
         </div>
         <div class="hud">
           <div class="hud__item">
@@ -31,14 +31,14 @@
       <section class="screen screen--title" id="screenTitle">
         <div class="panel">
           <div class="panel__headline">PATTERN RETRIEVAL</div>
-          <div class="panel__sub">Guess what the network remembers.</div>
+          <div class="panel__sub">the network has stored a memory. recall it.</div>
           <div class="panel__row">
             <button class="btn" data-difficulty="easy">EASY</button>
             <button class="btn" data-difficulty="medium">MEDIUM</button>
             <button class="btn" data-difficulty="hard">HARD</button>
           </div>
           <div class="panel__hint">
-            Watch the noise converge, then choose what you saw.
+            watch the scatter converge. choose the label.
           </div>
         </div>
       </section>
@@ -48,9 +48,9 @@
           <div class="crt">
             <div class="crt__glass">
               <canvas id="gridCanvas" width="480" height="480" aria-label="Pixel recall display"></canvas>
-              <div class="crt__overlay" aria-hidden="true"></div>
             </div>
           </div>
+          <div class="readout" id="paramText">MODE: -- · GRID: 24×24 · ROUNDS: 10 · SPECIMENS: --</div>
           <div class="statusline" id="statusText">RECALLING...</div>
         </div>
 
@@ -64,12 +64,12 @@
 
       <section class="screen screen--end hidden" id="screenEnd">
         <div class="panel">
-          <div class="panel__headline">RESULT</div>
+          <div class="panel__headline">RETRIEVAL COMPLETE</div>
           <div class="panel__sub" id="finalText">--</div>
           <pre class="sharebox" id="shareText"></pre>
           <div class="panel__row">
-            <button class="btn" id="copyBtn">COPY</button>
-            <button class="btn btn--ghost" id="againBtn">PLAY AGAIN</button>
+            <button class="btn" id="copyBtn">COPY RESULT</button>
+            <button class="btn btn--ghost" id="againBtn">RESTART</button>
           </div>
           <div class="panel__hint" id="copyHint"></div>
         </div>
