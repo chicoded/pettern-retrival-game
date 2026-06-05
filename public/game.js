@@ -66,8 +66,12 @@
   const finalText = $("#finalText");
   const shareText = $("#shareText");
   const copyBtn = $("#copyBtn");
+  const tweetBtn = $("#tweetBtn");
+  const downloadBtn = $("#downloadBtn");
   const againBtn = $("#againBtn");
   const copyHint = $("#copyHint");
+  const shareCanvas = $("#shareCanvas");
+  const shareCtx = shareCanvas ? shareCanvas.getContext("2d") : null;
 
   const canvas = $("#gridCanvas");
   const ctx = canvas.getContext("2d", { alpha: false });
@@ -674,6 +678,8 @@
   const game = (() => {
     let difficultyKey = null;
     let difficulty = null;
+    let runId = "----";
+    let runSeed = "--------";
 
     let roundIndex = 0;
     let score = 0;
@@ -715,7 +721,7 @@
       if (!paramText) return;
       const count = SPECS.length;
       const label = difficulty ? difficulty.label : "--";
-      paramText.textContent = `MODE: ${label} · GRID: 24×24 · ROUNDS: ${ROUNDS} · SPECIMENS: ${String(count).padStart(2, "0")}`;
+      paramText.textContent = `MODE: ${label} · RUN: ${runId} · SEED: ${runSeed} · GRID: 24×24 · ROUNDS: ${ROUNDS} · SPECIMENS: ${String(count).padStart(2, "0")}`;
     }
 
     function hideChoices() {
@@ -780,6 +786,8 @@
     function startGame(dKey) {
       difficultyKey = dKey;
       difficulty = DIFFICULTIES[difficultyKey];
+      runId = String(Date.now()).slice(-6).padStart(6, "0");
+      runSeed = ((Math.random() * 0xffffffff) >>> 0).toString(16).toUpperCase().padStart(8, "0");
       roundIndex = 0;
       score = 0;
       results = [];
@@ -803,20 +811,102 @@
       phaseTo("recall");
     }
 
+    function getShareUrl() {
+      const origin = window.location.origin;
+      if (origin && origin !== "null") return origin;
+      return "play.patternretrieval-game.app";
+    }
+
+    function getResultLine() {
+      return `PATTERN RETRIEVAL — ${score}/${ROUNDS} (${difficulty.label})`;
+    }
+
+    function getSharePayload() {
+      const squares = results.join("");
+      const url = getShareUrl();
+      return [
+        getResultLine(),
+        `RUN:${runId} SEED:${runSeed}`,
+        squares,
+        url,
+      ].join("\n");
+    }
+
+    function renderShareCard() {
+      if (!shareCanvas || !shareCtx) return;
+
+      const w = shareCanvas.width;
+      const h = shareCanvas.height;
+      const ctx2 = shareCtx;
+
+      ctx2.save();
+      ctx2.clearRect(0, 0, w, h);
+      ctx2.fillStyle = "#050819";
+      ctx2.fillRect(0, 0, w, h);
+
+      ctx2.strokeStyle = "rgba(255,255,255,0.16)";
+      ctx2.lineWidth = 2;
+      ctx2.strokeRect(26, 26, w - 52, h - 52);
+      ctx2.strokeStyle = "rgba(255,255,255,0.10)";
+      ctx2.strokeRect(44, 44, w - 88, h - 88);
+
+      ctx2.fillStyle = "rgba(0,0,0,0.14)";
+      for (let y = 0; y < h; y += 4) ctx2.fillRect(0, y, w, 1);
+
+      const borderStep = Math.max(1, Math.round(Math.min(w, h) / 220));
+      const rings = 18;
+      for (let r = 0; r < rings; r++) {
+        const inset = r * borderStep;
+        const alpha = 0.012 + r * 0.0048;
+        ctx2.fillStyle = `rgba(0,0,0,${alpha.toFixed(4)})`;
+        ctx2.fillRect(0, 0, w, inset + borderStep);
+        ctx2.fillRect(0, h - (inset + borderStep), w, inset + borderStep);
+        ctx2.fillRect(0, inset, inset + borderStep, h - inset * 2);
+        ctx2.fillRect(w - (inset + borderStep), inset, inset + borderStep, h - inset * 2);
+      }
+
+      const titleX = 80;
+      let y = 120;
+      ctx2.textBaseline = "top";
+      ctx2.fillStyle = "rgba(255,255,255,0.92)";
+      ctx2.font = "72px VT323, monospace";
+      ctx2.fillText("PATTERN RETRIEVAL", titleX, y);
+      y += 72;
+      ctx2.fillStyle = "rgba(255,255,255,0.70)";
+      ctx2.font = "34px VT323, monospace";
+      ctx2.fillText("GUESS THE GLYPH · STATUS: ONLINE", titleX, y);
+      y += 58;
+
+      ctx2.fillStyle = "rgba(255,255,255,0.62)";
+      ctx2.font = "30px VT323, monospace";
+      ctx2.fillText(`MODE: ${difficulty.label} · RUN: ${runId} · SEED: ${runSeed}`, titleX, y);
+      y += 56;
+
+      ctx2.fillStyle = "rgba(255,255,255,0.92)";
+      ctx2.font = "44px VT323, monospace";
+      ctx2.fillText(`RETRIEVAL COMPLETE · ${score}/${ROUNDS}`, titleX, y);
+      y += 84;
+
+      const squares = results.join("");
+      ctx2.font = "62px VT323, monospace";
+      ctx2.fillStyle = "rgba(255,255,255,0.92)";
+      ctx2.fillText(squares, titleX, y);
+      y += 120;
+
+      ctx2.fillStyle = "rgba(255,255,255,0.62)";
+      ctx2.font = "32px VT323, monospace";
+      ctx2.fillText(getShareUrl(), titleX, h - 110);
+
+      ctx2.restore();
+    }
+
     function endGame() {
       audio.stopHum();
       setScreen("end");
       finalText.textContent = `RETRIEVAL COMPLETE · ${score} PATTERNS RECALLED`;
 
-      const squares = results.join("");
-      const url = window.location.origin && window.location.origin !== "null" ? window.location.origin : "play.patternretrieval-game.app";
-      const share = [
-        `PATTERN RETRIEVAL — ${score}/${ROUNDS} (${difficulty.label})`,
-        squares,
-        url,
-      ].join("\n");
-
-      shareText.textContent = share;
+      shareText.textContent = getSharePayload();
+      renderShareCard();
       copyHint.textContent = "";
       phaseTo("end");
     }
@@ -1011,18 +1101,54 @@
         updateHud();
       });
 
+      if (tweetBtn) {
+        tweetBtn.addEventListener("click", () => {
+          const text = shareText.textContent || getSharePayload();
+          const intent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+          window.open(intent, "_blank", "noopener,noreferrer");
+        });
+      }
+
+      if (downloadBtn) {
+        downloadBtn.addEventListener("click", async () => {
+          renderShareCard();
+          if (!shareCanvas) return;
+          const file = `pattern-retrieval_${difficulty.label.toLowerCase()}_${score}-${ROUNDS}_run-${runId}.png`;
+          if (shareCanvas.toBlob) {
+            shareCanvas.toBlob((blob) => {
+              if (!blob) return;
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = file;
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+              URL.revokeObjectURL(url);
+            }, "image/png");
+          } else {
+            const a = document.createElement("a");
+            a.href = shareCanvas.toDataURL("image/png");
+            a.download = file;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+          }
+        });
+      }
+
       copyBtn.addEventListener("click", async () => {
         const text = shareText.textContent || "";
         try {
           await navigator.clipboard.writeText(text);
-          copyHint.textContent = "COPIED TO CLIPBOARD";
+          copyHint.textContent = "COPIED";
         } catch (_) {
           const range = document.createRange();
           range.selectNodeContents(shareText);
           const sel = window.getSelection();
           sel.removeAllRanges();
           sel.addRange(range);
-          copyHint.textContent = "SELECTED — COPY MANUALLY";
+          copyHint.textContent = "SELECTED · COPY MANUALLY";
         }
       });
     }

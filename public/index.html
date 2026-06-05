@@ -38,7 +38,7 @@
             <button class="btn" data-difficulty="hard">HARD</button>
           </div>
           <div class="panel__hint">
-            watch the scatter converge. choose the label.
+            guest mode · no login. watch the scatter converge. choose the label.
           </div>
         </div>
       </section>
@@ -66,9 +66,14 @@
         <div class="panel">
           <div class="panel__headline">RETRIEVAL COMPLETE</div>
           <div class="panel__sub" id="finalText">--</div>
+          <div class="sharecard">
+            <canvas id="shareCanvas" width="1080" height="1080" aria-label="Shareable result card"></canvas>
+          </div>
           <pre class="sharebox" id="shareText"></pre>
           <div class="panel__row">
             <button class="btn" id="copyBtn">COPY RESULT</button>
+            <button class="btn" id="tweetBtn">POST TO X</button>
+            <button class="btn" id="downloadBtn">DOWNLOAD IMAGE</button>
             <button class="btn btn--ghost" id="againBtn">RESTART</button>
           </div>
           <div class="panel__hint" id="copyHint"></div>

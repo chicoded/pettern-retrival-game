@@ -186,11 +186,26 @@ body {
   transform: perspective(800px) rotateX(6deg) scale(0.985);
 }
 
-canvas {
+#gridCanvas {
   width: 100%;
   height: 100%;
   display: block;
   image-rendering: pixelated;
+}
+
+.sharecard {
+  margin-top: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+#shareCanvas {
+  width: 100%;
+  height: auto;
+  display: block;
+  image-rendering: auto;
 }
 
 .readout {
