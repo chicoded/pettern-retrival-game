@@ -1383,8 +1383,6 @@
         ctx2.imageSmoothingEnabled = avatarMode === "upload";
         ctx2.drawImage(avatarCanvas, ax, ay, aw, ah);
         ctx2.imageSmoothingEnabled = true;
-
-        drawTrophyPixelIcon(ax + 62, ay + ah + 44, 6);
       }
 
       const squares = results.join("");
@@ -1392,6 +1390,12 @@
       ctx2.fillStyle = "rgba(255,255,255,0.92)";
       ctx2.fillText(squares, titleX, y);
       y += 120;
+
+      const trophyScale = 10;
+      const trophyW = 16 * trophyScale;
+      const trophyX = Math.floor((w - trophyW) / 2);
+      drawTrophyPixelIcon(trophyX, y + 8, trophyScale);
+      y += 16 * trophyScale + 18;
 
       ctx2.fillStyle = "rgba(255,255,255,0.62)";
       ctx2.font = "32px VT323, monospace";
