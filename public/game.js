@@ -867,8 +867,6 @@
 
     let recallStart = 0;
     let scatterStart = 0;
-    let gateRowsDone = 0;
-    let gateNoiseGrid = null;
 
     let optionNames = [];
     let correctName = "";
@@ -981,20 +979,12 @@
     function startRound() {
       updateHud();
       hideChoices();
+      setStatus("RECALLING MEMORY...");
       setTarget(roundSpecs[roundIndex]);
       buildOptions();
-      setStatus("BUFFER FLUSH...");
-
-      const keys = Object.keys(PALETTE);
-      const nextNoise = new Array(GRID * GRID);
-      const gateLitProb = 0.22;
-      for (let i = 0; i < nextNoise.length; i++) {
-        nextNoise[i] = Math.random() < gateLitProb ? "c" : null;
-        lockAt[i] = -1;
-      }
-      gateNoiseGrid = nextNoise;
-      gateRowsDone = 0;
-      phaseTo("gate");
+      randomNoiseGrid({ litProb: difficulty.noiseLitProb });
+      recallStart = performance.now();
+      phaseTo("recall");
     }
 
     function getShareUrl() {
@@ -1296,26 +1286,6 @@
       }
     }
 
-    function stepGate(now) {
-      const t = clamp01((now - phaseStart) / 900);
-      const rows = Math.min(GRID, Math.floor(t * GRID));
-      for (let y = gateRowsDone; y < rows; y++) {
-        const rowStart = y * GRID;
-        for (let x = 0; x < GRID; x++) {
-          const i = rowStart + x;
-          currentGrid[i] = gateNoiseGrid[i];
-          lockAt[i] = -1;
-        }
-      }
-      gateRowsDone = rows;
-
-      if (rows >= GRID) {
-        recallStart = now;
-        setStatus("RECALLING MEMORY...");
-        phaseTo("recall");
-      }
-    }
-
     function stepHold(now) {
       if (now - phaseStart >= difficulty.holdMs) {
         scatterStart = now;
@@ -1364,25 +1334,11 @@
     function draw(now) {
       render.clear();
 
-      const recallT = phase === "recall" ? clamp01((now - recallStart) / difficulty.recallMs) : 0;
-      const latchFlicker = phase === "recall" && recallT > 0.9 && recallT < 1;
-      let flickerIndex = -1;
-      if (latchFlicker) {
-        for (let n = 0; n < 8; n++) {
-          const i = randInt(currentGrid.length);
-          if (currentGrid[i]) {
-            flickerIndex = i;
-            break;
-          }
-        }
-      }
-
       for (let y = 0; y < GRID; y++) {
         for (let x = 0; x < GRID; x++) {
           const i = idx(x, y);
           const c = currentGrid[i];
           if (!c) continue;
-          if (i === flickerIndex) continue;
           const base = 0.9;
           let pulse = 0;
           const t0 = lockAt[i];
@@ -1398,8 +1354,7 @@
     }
 
     function tick(now) {
-      if (phase === "gate") stepGate(now);
-      else if (phase === "recall") stepRecall(now);
+      if (phase === "recall") stepRecall(now);
       else if (phase === "hold") stepHold(now);
       else if (phase === "scatter") stepScatter(now);
       else if (phase === "feedback") stepFeedback(now);
