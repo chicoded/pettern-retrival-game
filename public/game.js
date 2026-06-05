@@ -40,6 +40,8 @@
     a: "#ffaa00",
   };
 
+  const CANONICAL_PUBLIC_URL = "https://chicoded.github.io/pettern-retrival-game/";
+
   const EMOJI_BY_COLOR = {
     c: "🟦",
     m: "🟪",
@@ -70,6 +72,8 @@
   const hudAvatarCtx = hudAvatar ? hudAvatar.getContext("2d", { alpha: false }) : null;
   const hudName = $("#hudName");
   const hudUser = $("#hudUser");
+
+  let avatarMode = "random";
 
   const roundText = $("#roundText");
   const scoreText = $("#scoreText");
@@ -132,6 +136,9 @@
 
   function renderAvatar(seedStr) {
     if (!avatarCanvas || !avatarCtx) return;
+    avatarMode = "random";
+    avatarCanvas.width = 96;
+    avatarCanvas.height = 96;
     const ctxA = avatarCtx;
     const w = avatarCanvas.width;
     const h = avatarCanvas.height;
@@ -206,7 +213,7 @@
     if (!hudAvatar || !hudAvatarCtx) return;
     const w = hudAvatar.width;
     const h = hudAvatar.height;
-    hudAvatarCtx.imageSmoothingEnabled = false;
+    hudAvatarCtx.imageSmoothingEnabled = avatarMode === "upload";
     hudAvatarCtx.fillStyle = "#050819";
     hudAvatarCtx.fillRect(0, 0, w, h);
     if (avatarCanvas) hudAvatarCtx.drawImage(avatarCanvas, 0, 0, w, h);
@@ -216,32 +223,25 @@
     if (!avatarCanvas || !avatarCtx) return false;
     if (!dataUrl) return false;
 
+    avatarMode = "upload";
     const img = new Image();
     img.decoding = "async";
     img.src = dataUrl;
     img.onload = () => {
+      avatarCanvas.width = 192;
+      avatarCanvas.height = 192;
       const w = avatarCanvas.width;
       const h = avatarCanvas.height;
-      const small = document.createElement("canvas");
-      small.width = 12;
-      small.height = 12;
-      const sctx = small.getContext("2d", { alpha: false });
-      sctx.fillStyle = "#050819";
-      sctx.fillRect(0, 0, small.width, small.height);
-
-      const scale = Math.max(small.width / img.width, small.height / img.height);
-      const dw = img.width * scale;
-      const dh = img.height * scale;
-      const dx = (small.width - dw) / 2;
-      const dy = (small.height - dh) / 2;
-      sctx.imageSmoothingEnabled = true;
-      sctx.drawImage(img, dx, dy, dw, dh);
-
       const ctxA = avatarCtx;
-      ctxA.imageSmoothingEnabled = false;
+      ctxA.imageSmoothingEnabled = true;
       ctxA.fillStyle = "#050819";
       ctxA.fillRect(0, 0, w, h);
-      ctxA.drawImage(small, 0, 0, w, h);
+      const scale = Math.max(w / img.width, h / img.height);
+      const dw = img.width * scale;
+      const dh = img.height * scale;
+      const dx = (w - dw) / 2;
+      const dy = (h - dh) / 2;
+      ctxA.drawImage(img, dx, dy, dw, dh);
       ctxA.fillStyle = "rgba(0,0,0,0.18)";
       for (let y = 0; y < h; y += 4) ctxA.fillRect(0, y, w, 1);
 
@@ -988,8 +988,9 @@
 
     function getShareUrl() {
       const origin = window.location.origin;
-      if (origin && origin !== "null") return origin;
-      return "play.patternretrieval-game.app";
+      if (!origin || origin === "null") return CANONICAL_PUBLIC_URL;
+      if (origin.includes("localhost") || origin.includes("127.0.0.1")) return CANONICAL_PUBLIC_URL;
+      return origin;
     }
 
     function getResultLine() {
@@ -1078,7 +1079,7 @@
         ctx2.strokeRect(ax - 14, ay - 14, aw + 28, ah + 28);
         ctx2.fillStyle = "rgba(0,0,0,0.22)";
         ctx2.fillRect(ax - 14, ay - 14, aw + 28, ah + 28);
-        ctx2.imageSmoothingEnabled = false;
+        ctx2.imageSmoothingEnabled = avatarMode === "upload";
         ctx2.drawImage(avatarCanvas, ax, ay, aw, ah);
         ctx2.imageSmoothingEnabled = true;
       }
@@ -1094,6 +1095,43 @@
       ctx2.fillText(getShareUrl(), titleX, h - 110);
 
       ctx2.restore();
+    }
+
+    function getShareImageFileName() {
+      const safeName = (playerName || "anonymous")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      return `pattern-retrieval_${safeName}_${difficulty.label.toLowerCase()}_${score}-${ROUNDS}_run-${runId}.png`;
+    }
+
+    async function getShareImageBlob() {
+      renderShareCard();
+      if (!shareCanvas) return null;
+      if (shareCanvas.toBlob) {
+        const blob = await new Promise((resolve) => {
+          shareCanvas.toBlob((b) => resolve(b || null), "image/png");
+        });
+        return blob;
+      }
+      const dataUrl = shareCanvas.toDataURL("image/png");
+      const res = await fetch(dataUrl);
+      return await res.blob();
+    }
+
+    async function downloadShareImage() {
+      const blob = await getShareImageBlob();
+      if (!blob) return false;
+      const file = getShareImageFileName();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = file;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2500);
+      return true;
     }
 
     function endGame() {
@@ -1300,39 +1338,33 @@
       });
 
       if (tweetBtn) {
-        tweetBtn.addEventListener("click", () => {
-          const text = shareText.textContent || getSharePayload();
-          const intent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+        tweetBtn.addEventListener("click", async () => {
+          const payload = shareText.textContent || getSharePayload();
+          const url = getShareUrl();
+
+          const blob = await getShareImageBlob();
+          if (blob && navigator.canShare) {
+            try {
+              const file = new File([blob], getShareImageFileName(), { type: "image/png" });
+              if (navigator.canShare({ files: [file] }) && navigator.share) {
+                await navigator.share({ files: [file], text: payload, url });
+                copyHint.textContent = "SHARE SENT";
+                return;
+              }
+            } catch (_) {}
+          }
+
+          await downloadShareImage();
+          copyHint.textContent = "IMAGE DOWNLOADED · ATTACH TO POST";
+          const intent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(payload)}`;
           window.open(intent, "_blank", "noopener,noreferrer");
         });
       }
 
       if (downloadBtn) {
         downloadBtn.addEventListener("click", async () => {
-          renderShareCard();
-          if (!shareCanvas) return;
-          const safeName = (playerName || "anonymous").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-          const file = `pattern-retrieval_${safeName}_${difficulty.label.toLowerCase()}_${score}-${ROUNDS}_run-${runId}.png`;
-          if (shareCanvas.toBlob) {
-            shareCanvas.toBlob((blob) => {
-              if (!blob) return;
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = file;
-              document.body.appendChild(a);
-              a.click();
-              a.remove();
-              URL.revokeObjectURL(url);
-            }, "image/png");
-          } else {
-            const a = document.createElement("a");
-            a.href = shareCanvas.toDataURL("image/png");
-            a.download = file;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-          }
+          const ok = await downloadShareImage();
+          if (ok) copyHint.textContent = "IMAGE DOWNLOADED";
         });
       }
 
