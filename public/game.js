@@ -1531,8 +1531,13 @@
 
       if (t >= 1) {
         for (let i = 0; i < currentGrid.length; i++) {
-          currentGrid[i] = targetGrid[i];
-          if (lockAt[i] < 0) lockAt[i] = now;
+          const desired = targetGrid[i];
+          if (currentGrid[i] !== desired) {
+            currentGrid[i] = desired;
+            lockAt[i] = now;
+          } else if (lockAt[i] < 0 && desired !== null) {
+            lockAt[i] = now;
+          }
         }
         phaseTo("hold");
       }
