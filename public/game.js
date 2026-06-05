@@ -1227,6 +1227,7 @@
       setScreen("game");
       updateHud();
       setReadout();
+      randomNoiseGrid({ litProb: difficulty.noiseLitProb });
       audio.startHum();
       startRound();
     }
@@ -1237,7 +1238,6 @@
       setStatus("RECALLING MEMORY...");
       setTarget(roundSpecs[roundIndex]);
       buildOptions();
-      randomNoiseGrid({ litProb: difficulty.noiseLitProb });
       recallStart = performance.now();
       phaseTo("recall");
     }
